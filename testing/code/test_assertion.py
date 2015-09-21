@@ -16,7 +16,7 @@ def test_assert():
 
 
 def test_assert_within_finally():
-    excinfo = py.test.raises(ZeroDivisionError, """
+    excinfo = pytest.raises(ZeroDivisionError, """
         try:
             1/0
         finally:
@@ -67,7 +67,7 @@ def test_is():
         assert s.startswith("assert 1 is 2")
 
 
-@py.test.mark.skipif("sys.version_info < (2,6)")
+@pytest.mark.skipif("sys.version_info < (2,6)")
 def test_attrib():
     class Foo(object):
         b = 1
@@ -79,7 +79,7 @@ def test_attrib():
         s = str(e)
         assert s.startswith("assert 1 == 2")
 
-@py.test.mark.skipif("sys.version_info < (2,6)")
+@pytest.mark.skipif("sys.version_info < (2,6)")
 def test_attrib_inst():
     class Foo(object):
         b = 1
@@ -147,7 +147,7 @@ def test_assert_with_brokenrepr_arg():
         def __repr__(self): 0 / 0
     e = AssertionError(BrokenRepr())
     if e.msg.find("broken __repr__") == -1:
-        py.test.fail("broken __repr__ not handle correctly")
+        pytest.fail("broken __repr__ not handle correctly")
 
 def test_multiple_statements_per_line():
     try:
@@ -167,7 +167,7 @@ def test_power():
 class TestView:
 
     def setup_class(cls):
-        cls.View = py.test.importorskip("_pytest.code._assertionold").View
+        cls.View = pytest.importorskip("_pytest.code._assertionold").View
 
     def test_class_dispatch(self):
         ### Use a custom class hierarchy with existing instances
@@ -228,7 +228,7 @@ def test_underscore_api():
     pytest.code._reinterpret_old # used by pypy
     pytest.code._reinterpret
 
-@py.test.mark.skipif("sys.version_info < (2,6)")
+@pytest.mark.skipif("sys.version_info < (2,6)")
 def test_assert_customizable_reprcompare(monkeypatch):
     util = pytest.importorskip("_pytest.assertion.util")
     monkeypatch.setattr(util, '_reprcompare', lambda *args: 'hello')

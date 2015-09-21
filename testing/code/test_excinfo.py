@@ -5,7 +5,7 @@ import pytest
 from _pytest.code.code import FormattedExcinfo, ReprExceptionInfo
 queue = py.builtin._tryimport('queue', 'Queue')
 
-failsonjython = py.test.mark.xfail("sys.platform.startswith('java')")
+failsonjython = pytest.mark.xfail("sys.platform.startswith('java')")
 from test_source import astonly
 
 try:
@@ -128,8 +128,8 @@ class TestTraceback_f_g_h:
 
     def test_traceback_cut_excludepath(self, testdir):
         p = testdir.makepyfile("def f(): raise ValueError")
-        excinfo = py.test.raises(ValueError, "p.pyimport().f()")
-        basedir = py.path.local(py.test.__file__).dirpath()
+        excinfo = pytest.raises(ValueError, "p.pyimport().f()")
+        basedir = py.path.local(pytest.__file__).dirpath()
         newtraceback = excinfo.traceback.cut(excludepath=basedir)
         for x in newtraceback:
             if hasattr(x, 'path'):
@@ -146,7 +146,7 @@ class TestTraceback_f_g_h:
             if n < 10:
                 n += 1
             f(n)
-        excinfo = py.test.raises(RuntimeError, f, 8)
+        excinfo = pytest.raises(RuntimeError, f, 8)
         traceback = excinfo.traceback
         recindex = traceback.recursionindex()
         assert recindex == 3
@@ -174,14 +174,14 @@ class TestTraceback_f_g_h:
                 do_stuff()
             except:
                 reraise_me()
-        excinfo = py.test.raises(RuntimeError, f, 8)
+        excinfo = pytest.raises(RuntimeError, f, 8)
         traceback = excinfo.traceback
         recindex = traceback.recursionindex()
         assert recindex is None
 
     def test_traceback_messy_recursion(self):
         #XXX: simplified locally testable version
-        decorator = py.test.importorskip('decorator').decorator
+        decorator = pytest.importorskip('decorator').decorator
 
         def log(f, *k, **kw):
             print('%s %s' % (k, kw))
@@ -193,7 +193,7 @@ class TestTraceback_f_g_h:
 
         fail = log(log(fail))
 
-        excinfo = py.test.raises(ValueError, fail)
+        excinfo = pytest.raises(ValueError, fail)
         assert excinfo.traceback.recursionindex() is None
 
 
@@ -210,7 +210,7 @@ class TestTraceback_f_g_h:
         def f():
             g()
 
-        excinfo = py.test.raises(ValueError, f)
+        excinfo = pytest.raises(ValueError, f)
         tb = excinfo.traceback
         entry = tb.getcrashentry()
         co = pytest.code.Code(h)
@@ -226,7 +226,7 @@ class TestTraceback_f_g_h:
             __tracebackhide__ = True
             g()
 
-        excinfo = py.test.raises(ValueError, f)
+        excinfo = pytest.raises(ValueError, f)
         tb = excinfo.traceback
         entry = tb.getcrashentry()
         co = pytest.code.Code(g)
@@ -247,28 +247,28 @@ def test_tbentry_reinterpret():
     assert msg.startswith("TypeError: ('hello' + 5)")
 
 def test_excinfo_exconly():
-    excinfo = py.test.raises(ValueError, h)
+    excinfo = pytest.raises(ValueError, h)
     assert excinfo.exconly().startswith('ValueError')
-    excinfo = py.test.raises(ValueError,
+    excinfo = pytest.raises(ValueError,
         "raise ValueError('hello\\nworld')")
     msg = excinfo.exconly(tryshort=True)
     assert msg.startswith('ValueError')
     assert msg.endswith("world")
 
 def test_excinfo_repr():
-    excinfo = py.test.raises(ValueError, h)
+    excinfo = pytest.raises(ValueError, h)
     s = repr(excinfo)
     assert s == "<ExceptionInfo ValueError tblen=4>"
 
 def test_excinfo_str():
-    excinfo = py.test.raises(ValueError, h)
+    excinfo = pytest.raises(ValueError, h)
     s = str(excinfo)
     assert s.startswith(__file__[:-9]) # pyc file and $py.class
     assert s.endswith("ValueError")
     assert len(s.split(":")) >= 3 # on windows it's 4
 
 def test_excinfo_errisinstance():
-    excinfo = py.test.raises(ValueError, h)
+    excinfo = pytest.raises(ValueError, h)
     assert excinfo.errisinstance(ValueError)
 
 def test_excinfo_no_sourcecode():
@@ -286,11 +286,11 @@ def test_excinfo_no_python_sourcecode(tmpdir):
     #XXX: simplified locally testable version
     tmpdir.join('test.txt').write("{{ h()}}:")
 
-    jinja2 = py.test.importorskip('jinja2')
+    jinja2 = pytest.importorskip('jinja2')
     loader = jinja2.FileSystemLoader(str(tmpdir))
     env = jinja2.Environment(loader=loader)
     template = env.get_template('test.txt')
-    excinfo = py.test.raises(ValueError,
+    excinfo = pytest.raises(ValueError,
                              template.render, h=h)
     for item in excinfo.traceback:
         print(item) #XXX: for some reason jinja.Template.render is printed in full
@@ -466,7 +466,7 @@ raise ValueError()
             def func1():
                 raise ValueError("hello\\nworld")
         """)
-        excinfo = py.test.raises(ValueError, mod.func1)
+        excinfo = pytest.raises(ValueError, mod.func1)
         excinfo.traceback = excinfo.traceback.filter()
         p = FormattedExcinfo()
         reprtb = p.repr_traceback_entry(excinfo.traceback[-1])
@@ -497,7 +497,7 @@ raise ValueError()
             def func1(m, x, y, z):
                 raise ValueError("hello\\nworld")
         """)
-        excinfo = py.test.raises(ValueError, mod.func1, "m"*90, 5, 13, "z"*120)
+        excinfo = pytest.raises(ValueError, mod.func1, "m"*90, 5, 13, "z"*120)
         excinfo.traceback = excinfo.traceback.filter()
         entry = excinfo.traceback[-1]
         p = FormattedExcinfo(funcargs=True)
@@ -521,7 +521,7 @@ raise ValueError()
             def func1(x, *y, **z):
                 raise ValueError("hello\\nworld")
         """)
-        excinfo = py.test.raises(ValueError, mod.func1, 'a', 'b', c='d')
+        excinfo = pytest.raises(ValueError, mod.func1, 'a', 'b', c='d')
         excinfo.traceback = excinfo.traceback.filter()
         entry = excinfo.traceback[-1]
         p = FormattedExcinfo(funcargs=True)
@@ -544,7 +544,7 @@ raise ValueError()
             def entry():
                 func1()
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         p = FormattedExcinfo(style="short")
         reprtb = p.repr_traceback_entry(excinfo.traceback[-2])
         lines = reprtb.lines
@@ -569,7 +569,7 @@ raise ValueError()
             def entry():
                 func1()
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         p = FormattedExcinfo(style="no")
         p.repr_traceback_entry(excinfo.traceback[-2])
 
@@ -586,7 +586,7 @@ raise ValueError()
             def entry():
                 f(0)
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         p = FormattedExcinfo(tbfilter=True)
         reprtb = p.repr_traceback(excinfo)
         assert len(reprtb.reprentries) == 2
@@ -601,7 +601,7 @@ raise ValueError()
             def entry():
                 func1()
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         from _pytest.code.code import Code
         monkeypatch.setattr(Code, 'path', 'bogus')
         excinfo.traceback[0].frame.code.path = "bogus"
@@ -625,7 +625,7 @@ raise ValueError()
             def entry():
                 f(0)
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
 
         for style in ("long", "short"):
             p = FormattedExcinfo(style=style)
@@ -646,7 +646,7 @@ raise ValueError()
             def entry():
                 f(0)
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
 
         p = FormattedExcinfo()
         def raiseos():
@@ -660,7 +660,7 @@ raise ValueError()
             def entry():
                 raise ValueError()
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         repr = excinfo.getrepr()
         repr.addsection("title", "content")
         twmock = TWMock()
@@ -673,7 +673,7 @@ raise ValueError()
             def entry():
                 raise ValueError()
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
         repr = excinfo.getrepr()
         assert repr.reprcrash.path.endswith("mod.py")
         assert repr.reprcrash.lineno == 3
@@ -689,7 +689,7 @@ raise ValueError()
             def entry():
                 rec1(42)
         """)
-        excinfo = py.test.raises(RuntimeError, mod.entry)
+        excinfo = pytest.raises(RuntimeError, mod.entry)
 
         for style in ("short", "long", "no"):
             p = FormattedExcinfo(style="short")
@@ -707,7 +707,7 @@ raise ValueError()
                 x = 1
                 assert x == 2
         """)
-        excinfo = py.test.raises(AssertionError, mod.somefunc)
+        excinfo = pytest.raises(AssertionError, mod.somefunc)
 
         p = FormattedExcinfo()
         reprentry = p.repr_traceback_entry(excinfo.traceback[-1], excinfo)
@@ -721,7 +721,7 @@ raise ValueError()
             def entry():
                 f(0)
         """)
-        excinfo = py.test.raises(ValueError, mod.entry)
+        excinfo = pytest.raises(ValueError, mod.entry)
 
         for style in ("short", "long", "no"):
             for showlocals in (True, False):
@@ -744,7 +744,7 @@ raise ValueError()
             def f():
                 g(3)
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         excinfo.traceback = excinfo.traceback.filter()
         repr = excinfo.getrepr()
         tw = TWMock()
@@ -770,7 +770,7 @@ raise ValueError()
             def f():
                 g(3)
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         tmpdir.join('mod.py').remove()
         excinfo.traceback = excinfo.traceback.filter()
         repr = excinfo.getrepr()
@@ -795,7 +795,7 @@ raise ValueError()
             def f():
                 g(3)
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         tmpdir.join('mod.py').write('asdf')
         excinfo.traceback = excinfo.traceback.filter()
         repr = excinfo.getrepr()
@@ -818,7 +818,7 @@ raise ValueError()
             def f():
                 raise ValueError()
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         tw = TWMock()
         path = py.path.local(mod.__file__)
         old = path.dirpath().chdir()
@@ -837,7 +837,7 @@ raise ValueError()
         finally:
             old.chdir()
 
-    @py.test.mark.multi(reproptions=[
+    @pytest.mark.multi(reproptions=[
         {'style': style, 'showlocals': showlocals,
          'funcargs': funcargs, 'tbfilter': tbfilter
         } for style in ("long", "short", "no")
@@ -851,7 +851,7 @@ raise ValueError()
             def f():
                 g(3)
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         tw = py.io.TerminalWriter(stringio=True)
         repr = excinfo.getrepr(**reproptions)
         repr.toterminal(tw)
@@ -883,7 +883,7 @@ raise ValueError()
             def i():
                 raise ValueError()
         """)
-        excinfo = py.test.raises(ValueError, mod.f)
+        excinfo = pytest.raises(ValueError, mod.f)
         excinfo.traceback = excinfo.traceback.filter()
         excinfo.traceback[1].set_repr_style("short")
         excinfo.traceback[2].set_repr_style("short")

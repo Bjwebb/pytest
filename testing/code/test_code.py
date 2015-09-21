@@ -19,7 +19,7 @@ def test_code_gives_back_name_for_not_existing_file():
 def test_code_with_class():
     class A:
         pass
-    py.test.raises(TypeError, "pytest.code.Code(A)")
+    pytest.raises(TypeError, "pytest.code.Code(A)")
 
 if True:
     def x():
@@ -85,7 +85,7 @@ def test_unicode_handling():
     value = py.builtin._totext('\xc4\x85\xc4\x87\n', 'utf-8').encode('utf8')
     def f():
         raise Exception(value)
-    excinfo = py.test.raises(Exception, f)
+    excinfo = pytest.raises(Exception, f)
     s = str(excinfo)
     if sys.version_info[0] < 3:
         u = unicode(excinfo)

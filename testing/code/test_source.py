@@ -5,11 +5,11 @@ import sys
 
 from _pytest.code.source import _ast
 if _ast is not None:
-    astonly = py.test.mark.nothing
+    astonly = pytest.mark.nothing
 else:
-    astonly = py.test.mark.xfail("True", reason="only works with AST-compile")
+    astonly = pytest.mark.xfail("True", reason="only works with AST-compile")
 
-failsonjython = py.test.mark.xfail("sys.platform.startswith('java')")
+failsonjython = pytest.mark.xfail("sys.platform.startswith('java')")
 
 def test_source_str_function():
     x = Source("3")
@@ -101,7 +101,7 @@ def test_source_strip_multiline():
     assert source2.lines == [" hello"]
 
 def test_syntaxerror_rerepresentation():
-    ex = py.test.raises(SyntaxError, pytest.code.compile, 'xyz xyz')
+    ex = pytest.raises(SyntaxError, pytest.code.compile, 'xyz xyz')
     assert ex.value.lineno == 1
     assert ex.value.offset in (4,7) # XXX pypy/jython versus cpython?
     assert ex.value.text.strip(), 'x x'
@@ -252,7 +252,7 @@ class TestSourceParsingAndCompiling:
         assert getstatement(2, source).lines == source.lines[2:3]
         assert getstatement(3, source).lines == source.lines[3:4]
 
-    @py.test.mark.skipif("sys.version_info < (2,6)")
+    @pytest.mark.skipif("sys.version_info < (2,6)")
     def test_getstatementrange_out_of_bounds_py3(self):
         source = Source("if xxx:\n   from .collections import something")
         r = source.getstatementrange(1)
@@ -260,9 +260,9 @@ class TestSourceParsingAndCompiling:
 
     def test_getstatementrange_with_syntaxerror_issue7(self):
         source = Source(":")
-        py.test.raises(SyntaxError, lambda: source.getstatementrange(0))
+        pytest.raises(SyntaxError, lambda: source.getstatementrange(0))
 
-    @py.test.mark.skipif("sys.version_info < (2,6)")
+    @pytest.mark.skipif("sys.version_info < (2,6)")
     def test_compile_to_ast(self):
         import ast
         source = Source("x = 4")
@@ -274,7 +274,7 @@ class TestSourceParsingAndCompiling:
         co = self.source.compile()
         py.builtin.exec_(co, globals())
         f(7)
-        excinfo = py.test.raises(AssertionError, "f(6)")
+        excinfo = pytest.raises(AssertionError, "f(6)")
         frame = excinfo.traceback[-1].frame
         stmt = frame.code.fullsource.getstatement(frame.lineno)
         #print "block", str(block)
@@ -299,7 +299,7 @@ class TestSourceParsingAndCompiling:
                 yield check, comp, name
 
     def test_offsetless_synerr(self):
-        py.test.raises(SyntaxError, pytest.code.compile, "lambda a,a: 0", mode='eval')
+        pytest.raises(SyntaxError, pytest.code.compile, "lambda a,a: 0", mode='eval')
 
 def test_getstartingblock_singleline():
     class A:
@@ -328,7 +328,7 @@ def test_getstartingblock_multiline():
 
 def test_getline_finally():
     def c(): pass
-    excinfo = py.test.raises(TypeError, """
+    excinfo = pytest.raises(TypeError, """
            teardown = None
            try:
                 c(1)
@@ -380,7 +380,7 @@ def test_deindent():
     lines = deindent(source.splitlines())
     assert lines == ['', 'def f():', '    def g():', '        pass', '    ']
 
-@py.test.mark.xfail("sys.version_info[:3] < (2,7,0) or "
+@pytest.mark.xfail("sys.version_info[:3] < (2,7,0) or "
     "((3,0) <= sys.version_info[:2] < (3,2))")
 def test_source_of_class_at_eof_without_newline(tmpdir):
     # this test fails because the implicit inspect.getsource(A) below
@@ -465,7 +465,7 @@ def test_getfslineno():
 def test_code_of_object_instance_with_call():
     class A:
         pass
-    py.test.raises(TypeError, lambda: pytest.code.Source(A()))
+    pytest.raises(TypeError, lambda: pytest.code.Source(A()))
     class WithCall:
         def __call__(self):
             pass
@@ -476,7 +476,7 @@ def test_code_of_object_instance_with_call():
     class Hello(object):
         def __call__(self):
             pass
-    py.test.raises(TypeError, lambda: pytest.code.Code(Hello))
+    pytest.raises(TypeError, lambda: pytest.code.Code(Hello))
 
 
 def getstatement(lineno, source):
