@@ -837,7 +837,7 @@ raise ValueError()
         finally:
             old.chdir()
 
-    @pytest.mark.multi(reproptions=[
+    @pytest.mark.parametrize('reproptions', [
         {'style': style, 'showlocals': showlocals,
          'funcargs': funcargs, 'tbfilter': tbfilter
         } for style in ("long", "short", "no")
