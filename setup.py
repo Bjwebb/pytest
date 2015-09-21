@@ -75,7 +75,7 @@ def main():
         # the following should be enabled for release
         install_requires=install_requires,
         extras_require=extras_require,
-        packages=['_pytest', '_pytest.assertion', '_pytest.vendored_packages'],
+        packages=['_pytest', '_pytest.assertion', '_pytest.vendored_packages', '_pytest.code'],
         py_modules=['pytest', 'pytest.code'],
         zip_safe=False,
     )
