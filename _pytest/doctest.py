@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import traceback
 import pytest, py
 from _pytest.python import FixtureRequest
-from py._code.code import TerminalRepr, ReprFileLocation
+from _pytest.code.code import TerminalRepr, ReprFileLocation
 
 def pytest_addoption(parser):
     parser.addini('doctest_optionflags', 'option flags for doctests',

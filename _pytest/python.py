@@ -7,7 +7,7 @@ import inspect
 import sys
 import pytest
 from _pytest.mark import MarkDecorator, MarkerError
-from py._code.code import TerminalRepr
+from _pytest.code.code import TerminalRepr
 
 try:
     import enum

@@ -10,7 +10,7 @@ reprlib = py.builtin._tryimport('repr', 'reprlib')
 if sys.version_info[0] >= 3:
     from traceback import format_exception_only
 else:
-    from py._code._py2traceback import format_exception_only
+    from _pytest.code._py2traceback import format_exception_only
 
 class Code(object):
     """ wrapper around Python code objects """
@@ -47,7 +47,7 @@ class Code(object):
     def fullsource(self):
         """ return a pytest.code.Source object for the full source file of the code
         """
-        from py._code import source
+        from _pytest.code import source
         full, _ = source.findsource(self.raw)
         return full
 
@@ -190,7 +190,7 @@ class TracebackEntry(object):
         """ return failing source code. """
         # we use the passed in astcache to not reparse asttrees
         # within exception info printing
-        from py._code.source import getstatementrange_ast
+        from _pytest.code.source import getstatementrange_ast
         source = self.frame.code.fullsource
         if source is None:
             return None
@@ -754,7 +754,7 @@ oldbuiltins = {}
 def patch_builtins(assertion=True, compile=True):
     """ put compile and AssertionError builtins to Python's builtins. """
     if assertion:
-        from py._code import assertion
+        from _pytest.code import assertion
         l = oldbuiltins.setdefault('AssertionError', [])
         l.append(py.builtin.builtins.AssertionError)
         py.builtin.builtins.AssertionError = assertion.AssertionError

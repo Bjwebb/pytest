@@ -5,7 +5,7 @@ from time import time
 
 import py
 import pytest
-from py._code.code import TerminalRepr
+from _pytest.code.code import TerminalRepr
 
 def pytest_namespace():
     return {

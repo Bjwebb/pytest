@@ -2,7 +2,7 @@ import py
 import pytest.code
 import sys, inspect
 from compiler import parse, ast, pycodegen
-from py._code.assertion import BuiltinAssertionError, _format_explanation
+from _pytest.code.assertion import BuiltinAssertionError, _format_explanation
 
 passthroughex = py.builtin._sysex
 
