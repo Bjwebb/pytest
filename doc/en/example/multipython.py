@@ -23,7 +23,7 @@ class Python:
         self.picklefile = picklefile
     def dumps(self, obj):
         dumpfile = self.picklefile.dirpath("dump.py")
-        dumpfile.write(py.code.Source("""
+        dumpfile.write(pytest.code.Source("""
             import pickle
             f = open(%r, 'wb')
             s = pickle.dump(%r, f, protocol=2)
@@ -33,7 +33,7 @@ class Python:
 
     def load_and_is_true(self, expression):
         loadfile = self.picklefile.dirpath("load.py")
-        loadfile.write(py.code.Source("""
+        loadfile.write(pytest.code.Source("""
             import pickle
             f = open(%r, 'rb')
             obj = pickle.load(f)

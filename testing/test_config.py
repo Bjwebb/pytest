@@ -7,7 +7,7 @@ class TestParseIni:
     def test_getcfg_and_config(self, testdir, tmpdir):
         sub = tmpdir.mkdir("sub")
         sub.chdir()
-        tmpdir.join("setup.cfg").write(py.code.Source("""
+        tmpdir.join("setup.cfg").write(pytest.code.Source("""
             [pytest]
             name = value
         """))
@@ -21,7 +21,7 @@ class TestParseIni:
 
     def test_append_parse_args(self, testdir, tmpdir, monkeypatch):
         monkeypatch.setenv('PYTEST_ADDOPTS', '--color no -rs --tb="short"')
-        tmpdir.join("setup.cfg").write(py.code.Source("""
+        tmpdir.join("setup.cfg").write(pytest.code.Source("""
             [pytest]
             addopts = --verbose
         """))

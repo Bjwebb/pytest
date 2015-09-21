@@ -1,17 +1,16 @@
 """
 Find intermediate evalutation results in assert statements through builtin AST.
-This should replace oldinterpret.py eventually.
+This should replace _assertionold.py eventually.
 """
 
 import sys
 import ast
 
 import pytest.code
-from _pytest.assertion import util
-from _pytest.assertion.reinterpret import BuiltinAssertionError
+from _pytest.code.assertion import _format_explanation, BuiltinAssertionError
 
 
-if sys.platform.startswith("java"):
+if sys.platform.startswith("java") and sys.version_info < (2, 5, 2):
     # See http://bugs.jython.org/issue1497
     _exprs = ("BoolOp", "BinOp", "UnaryOp", "Lambda", "IfExp", "Dict",
               "ListComp", "GeneratorExp", "Yield", "Compare", "Call",
@@ -33,12 +32,6 @@ else:
     def _is_ast_stmt(node):
         return isinstance(node, ast.stmt)
 
-try:
-    _Starred = ast.Starred
-except AttributeError:
-    # Python 2. Define a dummy class so isinstance() will always be False.
-    class _Starred(object): pass
-
 
 class Failure(Exception):
     """Error found while interpreting AST."""
@@ -59,24 +52,27 @@ def interpret(source, frame, should_fail=False):
     if should_fail:
         return ("(assertion failed, but when it was re-run for "
                 "printing intermediate values, it did not fail.  Suggestions: "
-                "compute assert expression before the assert or use --assert=plain)")
+                "compute assert expression before the assert or use --no-assert)")
 
 def run(offending_line, frame=None):
     if frame is None:
         frame = pytest.code.Frame(sys._getframe(1))
     return interpret(offending_line, frame)
 
-def getfailure(e):
-    explanation = util.format_explanation(e.explanation)
-    value = e.cause[1]
+def getfailure(failure):
+    explanation = _format_explanation(failure.explanation)
+    value = failure.cause[1]
     if str(value):
-        lines = explanation.split('\n')
-        lines[0] += "  << %s" % (value,)
-        explanation = '\n'.join(lines)
-    text = "%s: %s" % (e.cause[0].__name__, explanation)
-    if text.startswith('AssertionError: assert '):
+        lines = explanation.splitlines()
+        if not lines:
+            lines.append("")
+        lines[0] += " << %s" % (value,)
+        explanation = "\n".join(lines)
+    text = "%s: %s" % (failure.cause[0].__name__, explanation)
+    if text.startswith("AssertionError: assert "):
         text = text[16:]
     return text
+
 
 operator_map = {
     ast.BitOr : "|",
@@ -158,8 +154,8 @@ class DebugInterpreter(ast.NodeVisitor):
             local = self.frame.eval(co)
         except Exception:
             # have to assume it isn't
-            local = None
-        if local is None or not self.frame.is_true(local):
+            local = False
+        if not local:
             return name.id, result
         return explanation, result
 
@@ -179,7 +175,7 @@ class DebugInterpreter(ast.NodeVisitor):
             except Exception:
                 raise Failure(explanation)
             try:
-                if not self.frame.is_true(result):
+                if not result:
                     break
             except KeyboardInterrupt:
                 raise
@@ -187,8 +183,9 @@ class DebugInterpreter(ast.NodeVisitor):
                 break
             left_explanation, left_result = next_explanation, next_result
 
-        if util._reprcompare is not None:
-            res = util._reprcompare(op_symbol, left_result, next_result)
+        rcomp = pytest.code._reprcompare
+        if rcomp:
+            res = rcomp(op_symbol, left_result, next_result)
             if res:
                 explanation = res
         return explanation, result
@@ -238,38 +235,24 @@ class DebugInterpreter(ast.NodeVisitor):
         arguments = []
         for arg in call.args:
             arg_explanation, arg_result = self.visit(arg)
-            if isinstance(arg, _Starred):
-                arg_name = "__exprinfo_star"
-                ns[arg_name] = arg_result
-                arguments.append("*%s" % (arg_name,))
-                arg_explanations.append("*%s" % (arg_explanation,))
-            else:
-                arg_name = "__exprinfo_%s" % (len(ns),)
-                ns[arg_name] = arg_result
-                arguments.append(arg_name)
-                arg_explanations.append(arg_explanation)
+            arg_name = "__exprinfo_%s" % (len(ns),)
+            ns[arg_name] = arg_result
+            arguments.append(arg_name)
+            arg_explanations.append(arg_explanation)
         for keyword in call.keywords:
             arg_explanation, arg_result = self.visit(keyword.value)
-            if keyword.arg:
-                arg_name = "__exprinfo_%s" % (len(ns),)
-                keyword_source = "%s=%%s" % (keyword.arg)
-                arguments.append(keyword_source % (arg_name,))
-                arg_explanations.append(keyword_source % (arg_explanation,))
-            else:
-                arg_name = "__exprinfo_kwds"
-                arguments.append("**%s" % (arg_name,))
-                arg_explanations.append("**%s" % (arg_explanation,))
-                
+            arg_name = "__exprinfo_%s" % (len(ns),)
             ns[arg_name] = arg_result
-
-        if getattr(call, 'starargs', None):
+            keyword_source = "%s=%%s" % (keyword.arg)
+            arguments.append(keyword_source % (arg_name,))
+            arg_explanations.append(keyword_source % (arg_explanation,))
+        if call.starargs:
             arg_explanation, arg_result = self.visit(call.starargs)
             arg_name = "__exprinfo_star"
             ns[arg_name] = arg_result
             arguments.append("*%s" % (arg_name,))
             arg_explanations.append("*%s" % (arg_explanation,))
-            
-        if getattr(call, 'kwargs', None):
+        if call.kwargs:
             arg_explanation, arg_result = self.visit(call.kwargs)
             arg_name = "__exprinfo_kwds"
             ns[arg_name] = arg_result
@@ -306,19 +289,7 @@ class DebugInterpreter(ast.NodeVisitor):
         source = "__exprinfo_expr.%s" % (attr.attr,)
         co = self._compile(source)
         try:
-            try:
-                result = self.frame.eval(co, __exprinfo_expr=source_result)
-            except AttributeError:
-                # Maybe the attribute name needs to be mangled?
-                if not attr.attr.startswith("__") or attr.attr.endswith("__"):
-                    raise
-                source = "getattr(__exprinfo_expr.__class__, '__name__', '')"
-                co = self._compile(source)
-                class_name = self.frame.eval(co, __exprinfo_expr=source_result)
-                mangled_attr = "_" + class_name +  attr.attr
-                source = "__exprinfo_expr.%s" % (mangled_attr,)
-                co = self._compile(source)
-                result = self.frame.eval(co, __exprinfo_expr=source_result)
+            result = self.frame.eval(co, __exprinfo_expr=source_result)
         except Exception:
             raise Failure(explanation)
         explanation = "%s\n{%s = %s.%s\n}" % (self.frame.repr(result),
@@ -331,8 +302,8 @@ class DebugInterpreter(ast.NodeVisitor):
         try:
             from_instance = self.frame.eval(co, __exprinfo_expr=source_result)
         except Exception:
-            from_instance = None
-        if from_instance is None or self.frame.is_true(from_instance):
+            from_instance = True
+        if from_instance:
             rep = self.frame.repr(result)
             pattern = "%s\n{%s = %s\n}"
             explanation = pattern % (rep, rep, explanation)
@@ -340,8 +311,11 @@ class DebugInterpreter(ast.NodeVisitor):
 
     def visit_Assert(self, assrt):
         test_explanation, test_result = self.visit(assrt.test)
+        if test_explanation.startswith("False\n{False =") and \
+                test_explanation.endswith("\n"):
+            test_explanation = test_explanation[15:-2]
         explanation = "assert %s" % (test_explanation,)
-        if not self.frame.is_true(test_result):
+        if not test_result:
             try:
                 raise BuiltinAssertionError
             except Exception:

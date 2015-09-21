@@ -472,7 +472,7 @@ class Testdir:
         ret = None
         for name, value in items:
             p = self.tmpdir.join(name).new(ext=ext)
-            source = py.code.Source(value)
+            source = pytest.code.Source(value)
             def my_totext(s, encoding="utf-8"):
                 if py.builtin._isbytes(s):
                     s = py.builtin._totext(s, encoding=encoding)
@@ -821,7 +821,7 @@ class Testdir:
            to the temporarly directory to ensure it is a package.
 
         """
-        kw = {self.request.function.__name__: py.code.Source(source).strip()}
+        kw = {self.request.function.__name__: pytest.code.Source(source).strip()}
         path = self.makepyfile(**kw)
         if withinit:
             self.makepyfile(__init__ = "#")
@@ -1027,8 +1027,8 @@ class LineMatcher:
 
     def _getlines(self, lines2):
         if isinstance(lines2, str):
-            lines2 = py.code.Source(lines2)
-        if isinstance(lines2, py.code.Source):
+            lines2 = pytest.code.Source(lines2)
+        if isinstance(lines2, pytest.code.Source):
             lines2 = lines2.strip().lines
         return lines2
 

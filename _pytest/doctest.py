@@ -83,7 +83,7 @@ class DoctestItem(pytest.Item):
                 lines += checker.output_difference(example,
                         doctestfailure.got, REPORT_UDIFF).split("\n")
             else:
-                inner_excinfo = py.code.ExceptionInfo(excinfo.value.exc_info)
+                inner_excinfo = pytest.code.ExceptionInfo(excinfo.value.exc_info)
                 lines += ["UNEXPECTED EXCEPTION: %s" %
                             repr(inner_excinfo.value)]
                 lines += traceback.format_exception(*excinfo.value.exc_info)

@@ -23,7 +23,7 @@ def mock_config():
 
 
 def interpret(expr):
-    return reinterpret.reinterpret(expr, py.code.Frame(sys._getframe(1)))
+    return reinterpret.reinterpret(expr, pytest.code.Frame(sys._getframe(1)))
 
 class TestBinReprIntegration:
     pytestmark = needsnewassert

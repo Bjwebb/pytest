@@ -171,7 +171,7 @@ Bug fixes:
 
 - fix issue317: assertion rewriter support for the is_package method
 
-- fix issue335: document py.code.ExceptionInfo() object returned
+- fix issue335: document pytest.code.ExceptionInfo() object returned
   from pytest.raises(), thanks Mathieu Agopian.
 
 - remove implicit distribute_setup support from setup.py.

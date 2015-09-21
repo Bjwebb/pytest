@@ -1,5 +1,6 @@
 import sys
 import py
+import pytest.code
 from _pytest.assertion.util import BuiltinAssertionError
 u = py.builtin._totext
 
@@ -22,7 +23,7 @@ class AssertionError(BuiltinAssertionError):
                     "<[broken __repr__] %s at %0xd>"
                     % (toprint.__class__, id(toprint)))
         else:
-            f = py.code.Frame(sys._getframe(1))
+            f = pytest.code.Frame(sys._getframe(1))
             try:
                 source = f.code.fullsource
                 if source is not None:

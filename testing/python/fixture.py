@@ -1,4 +1,4 @@
-import pytest, py, sys
+import pytest, pytest.code, sys
 from _pytest import python as funcargs
 from _pytest.python import FixtureLookupError
 from _pytest.pytester import get_public_names
@@ -86,12 +86,12 @@ class TestFillFixtures:
     def test_conftest_funcargs_only_available_in_subdir(self, testdir):
         sub1 = testdir.mkpydir("sub1")
         sub2 = testdir.mkpydir("sub2")
-        sub1.join("conftest.py").write(py.code.Source("""
+        sub1.join("conftest.py").write(pytest.code.Source("""
             import pytest
             def pytest_funcarg__arg1(request):
                 pytest.raises(Exception, "request.getfuncargvalue('arg2')")
         """))
-        sub2.join("conftest.py").write(py.code.Source("""
+        sub2.join("conftest.py").write(pytest.code.Source("""
             import pytest
             def pytest_funcarg__arg2(request):
                 pytest.raises(Exception, "request.getfuncargvalue('arg1')")
@@ -156,7 +156,7 @@ class TestFillFixtures:
                 return 'spam'
         """)
         pkg = testdir.mkpydir("pkg")
-        pkg.join("conftest.py").write(py.code.Source("""
+        pkg.join("conftest.py").write(pytest.code.Source("""
             import pytest
 
             @pytest.fixture
@@ -164,7 +164,7 @@ class TestFillFixtures:
                 return spam * 2
         """))
         testfile = pkg.join("test_spam.py")
-        testfile.write(py.code.Source("""
+        testfile.write(pytest.code.Source("""
             def test_spam(spam):
                 assert spam == "spamspam"
         """))
@@ -258,7 +258,7 @@ class TestFillFixtures:
                 return request.param
         """)
         subdir = testdir.mkpydir('subdir')
-        subdir.join("conftest.py").write(py.code.Source("""
+        subdir.join("conftest.py").write(pytest.code.Source("""
             import pytest
 
             @pytest.fixture
@@ -266,7 +266,7 @@ class TestFillFixtures:
                 return 'spam'
         """))
         testfile = subdir.join("test_spam.py")
-        testfile.write(py.code.Source("""
+        testfile.write(pytest.code.Source("""
             def test_spam(spam):
                 assert spam == "spam"
         """))
@@ -312,7 +312,7 @@ class TestFillFixtures:
                 return 'spam'
         """)
         subdir = testdir.mkpydir('subdir')
-        subdir.join("conftest.py").write(py.code.Source("""
+        subdir.join("conftest.py").write(pytest.code.Source("""
             import pytest
 
             @pytest.fixture(params=[1, 2, 3])
@@ -320,7 +320,7 @@ class TestFillFixtures:
                 return request.param
         """))
         testfile = subdir.join("test_spam.py")
-        testfile.write(py.code.Source("""
+        testfile.write(pytest.code.Source("""
             params = {'spam': 1}
 
             def test_spam(spam):
@@ -609,7 +609,7 @@ class TestRequestBasic:
     def test_fixtures_sub_subdir_normalize_sep(self, testdir):
         # this tests that normalization of nodeids takes place
         b = testdir.mkdir("tests").mkdir("unit")
-        b.join("conftest.py").write(py.code.Source("""
+        b.join("conftest.py").write(pytest.code.Source("""
             def pytest_funcarg__arg1():
                 pass
         """))
@@ -1349,7 +1349,7 @@ class TestAutouseDiscovery:
 class TestAutouseManagement:
     def test_autouse_conftest_mid_directory(self, testdir):
         pkgdir = testdir.mkpydir("xyz123")
-        pkgdir.join("conftest.py").write(py.code.Source("""
+        pkgdir.join("conftest.py").write(pytest.code.Source("""
             import pytest
             @pytest.fixture(autouse=True)
             def app():
@@ -1357,7 +1357,7 @@ class TestAutouseManagement:
                 sys._myapp = "hello"
         """))
         t = pkgdir.ensure("tests", "test_app.py")
-        t.write(py.code.Source("""
+        t.write(pytest.code.Source("""
             import sys
             def test_app():
                 assert sys._myapp == "hello"

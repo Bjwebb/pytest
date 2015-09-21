@@ -417,7 +417,7 @@ get on the terminal - we are working on that):
             src = 'def foo():\n assert 1 == 0\n'
             name = 'abc-123'
             module = py.std.imp.new_module(name)
-            code = py.code.compile(src, name, 'exec')
+            code = pytest.code.compile(src, name, 'exec')
             py.builtin.exec_(code, module.__dict__)
             py.std.sys.modules[name] = module
     >       module.foo()

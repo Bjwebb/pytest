@@ -64,7 +64,7 @@ def getfslineno(obj):
     obj = get_real_func(obj)
     if hasattr(obj, 'place_as'):
         obj = obj.place_as
-    fslineno = py.code.getfslineno(obj)
+    fslineno = pytest.code.getfslineno(obj)
     assert isinstance(fslineno[1], int), obj
     return fslineno
 
@@ -306,7 +306,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
 def is_generator(func):
     try:
-        return py.code.getrawcode(func).co_flags & 32 # generator function
+        return pytest.code.getrawcode(func).co_flags & 32 # generator function
     except AttributeError: # builtin functions have no bytecode
         # assume them to not be generators
         return False
@@ -581,7 +581,7 @@ class Module(pytest.File, PyCollector):
             mod = self.fspath.pyimport(ensuresyspath=importmode)
         except SyntaxError:
             raise self.CollectError(
-                py.code.ExceptionInfo().getrepr(style="short"))
+                pytest.code.ExceptionInfo().getrepr(style="short"))
         except self.fspath.ImportMismatchError:
             e = sys.exc_info()[1]
             raise self.CollectError(
@@ -687,7 +687,7 @@ class FunctionMixin(PyobjMixin):
 
     def _prunetraceback(self, excinfo):
         if hasattr(self, '_obj') and not self.config.option.fulltrace:
-            code = py.code.Code(get_real_func(self.obj))
+            code = pytest.code.Code(get_real_func(self.obj))
             path, firstlineno = code.path, code.firstlineno
             traceback = excinfo.traceback
             ntraceback = traceback.cut(path=path, firstlineno=firstlineno)
@@ -1132,7 +1132,7 @@ def raises(expected_exception, *args, **kwargs):
     """ assert that a code block/function call raises @expected_exception
     and raise a failure exception otherwise.
 
-    This helper produces a ``py.code.ExceptionInfo()`` object.
+    This helper produces a ``pytest.code.ExceptionInfo()`` object.
 
     If using Python 2.5 or above, you may use this function as a
     context manager::
@@ -1163,7 +1163,7 @@ def raises(expected_exception, *args, **kwargs):
     -----------------
 
     Similar to caught exception objects in Python, explicitly clearing
-    local references to returned ``py.code.ExceptionInfo`` objects can
+    local references to returned ``pytest.code.ExceptionInfo`` objects can
     help the Python interpreter speed up its garbage collection.
 
     Clearing those references breaks a reference cycle
@@ -1202,18 +1202,18 @@ def raises(expected_exception, *args, **kwargs):
         loc.update(kwargs)
         #print "raises frame scope: %r" % frame.f_locals
         try:
-            code = py.code.Source(code).compile()
+            code = pytest.code.Source(code).compile()
             py.builtin.exec_(code, frame.f_globals, loc)
             # XXX didn'T mean f_globals == f_locals something special?
             #     this is destroyed here ...
         except expected_exception:
-            return py.code.ExceptionInfo()
+            return pytest.code.ExceptionInfo()
     else:
         func = args[0]
         try:
             func(*args[1:], **kwargs)
         except expected_exception:
-            return py.code.ExceptionInfo()
+            return pytest.code.ExceptionInfo()
     pytest.fail("DID NOT RAISE")
 
 class RaisesContext(object):
@@ -1222,7 +1222,7 @@ class RaisesContext(object):
         self.excinfo = None
 
     def __enter__(self):
-        self.excinfo = object.__new__(py.code.ExceptionInfo)
+        self.excinfo = object.__new__(pytest.code.ExceptionInfo)
         return self.excinfo
 
     def __exit__(self, *tp):
@@ -1928,7 +1928,7 @@ class FixtureManager:
 def fail_fixturefunc(fixturefunc, msg):
     fs, lineno = getfslineno(fixturefunc)
     location = "%s:%s" % (fs, lineno+1)
-    source = py.code.Source(fixturefunc)
+    source = pytest.code.Source(fixturefunc)
     pytest.fail(msg + ":\n\n" + str(source.indent()) + "\n" + location,
                 pytrace=False)
 
@@ -2071,14 +2071,14 @@ def getfuncargnames(function, startindex=None):
         startindex += num_mock_patch_args(function)
         function = realfunction
     if isinstance(function, functools.partial):
-        argnames = inspect.getargs(py.code.getrawcode(function.func))[0]
+        argnames = inspect.getargs(pytest.code.getrawcode(function.func))[0]
         partial = function
         argnames = argnames[len(partial.args):]
         if partial.keywords:
             for kw in partial.keywords:
                 argnames.remove(kw)
     else:
-        argnames = inspect.getargs(py.code.getrawcode(function))[0]
+        argnames = inspect.getargs(pytest.code.getrawcode(function))[0]
     defaults = getattr(function, 'func_defaults',
                        getattr(function, '__defaults__', None)) or ()
     numdefaults = len(defaults)

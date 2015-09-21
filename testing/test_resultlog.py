@@ -140,7 +140,7 @@ class TestWithFunctionIntegration:
         try:
             raise ValueError
         except ValueError:
-            excinfo = py.code.ExceptionInfo()
+            excinfo = pytest.code.ExceptionInfo()
         reslog = ResultLog(None, py.io.TextIO())
         reslog.pytest_internalerror(excinfo.getrepr(style=style))
         entry = reslog.logfile.getvalue()

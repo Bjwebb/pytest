@@ -8,6 +8,7 @@ __all__ = [
     'cmdline',
     'hookspec',
     'hookimpl',
+    'code',
     '__version__',
 ]
 
@@ -23,6 +24,7 @@ from _pytest.config import (
     hookspec, hookimpl
 )
 from _pytest import __version__
+
 
 _preloadplugins() # to populate pytest.* namespace so help(pytest) works
 

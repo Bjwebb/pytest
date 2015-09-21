@@ -4,7 +4,6 @@ import traceback
 import sys
 
 import pytest
-import py
 
 
 # for transfering markers
@@ -86,7 +85,7 @@ class TestCaseFunction(pytest.Function):
         # unwrap potential exception info (see twisted trial support below)
         rawexcinfo = getattr(rawexcinfo, '_rawexcinfo', rawexcinfo)
         try:
-            excinfo = py.code.ExceptionInfo(rawexcinfo)
+            excinfo = pytest.code.ExceptionInfo(rawexcinfo)
         except TypeError:
             try:
                 try:
@@ -102,7 +101,7 @@ class TestCaseFunction(pytest.Function):
             except KeyboardInterrupt:
                 raise
             except pytest.fail.Exception:
-                excinfo = py.code.ExceptionInfo()
+                excinfo = pytest.code.ExceptionInfo()
         self.__dict__.setdefault('_excinfo', []).append(excinfo)
 
     def addError(self, testcase, rawexcinfo):

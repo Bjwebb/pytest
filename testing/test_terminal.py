@@ -153,7 +153,7 @@ class TestTerminal:
 
     def test_itemreport_directclasses_not_shown_as_subclasses(self, testdir):
         a = testdir.mkpydir("a123")
-        a.join("test_hello123.py").write(py.code.Source("""
+        a.join("test_hello123.py").write(pytest.code.Source("""
             class TestClass:
                 def test_method(self):
                     pass
@@ -268,7 +268,7 @@ class TestCollectonly:
         p = testdir.makepyfile("import Errlkjqweqwe")
         result = testdir.runpytest("--collect-only", p)
         assert result.ret == 1
-        result.stdout.fnmatch_lines(py.code.Source("""
+        result.stdout.fnmatch_lines(pytest.code.Source("""
             *ERROR*
             *import Errlk*
             *ImportError*

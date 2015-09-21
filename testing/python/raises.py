@@ -41,7 +41,7 @@ class TestRaises:
 
             def test_simple():
                 with pytest.raises(ZeroDivisionError) as excinfo:
-                    assert isinstance(excinfo, py.code.ExceptionInfo)
+                    assert isinstance(excinfo, pytest.code.ExceptionInfo)
                     1/0
                 print (excinfo)
                 assert excinfo.type == ZeroDivisionError

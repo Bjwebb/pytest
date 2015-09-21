@@ -588,13 +588,13 @@ class TestConftestCustomization:
 
     def test_customized_pymakemodule_issue205_subdir(self, testdir):
         b = testdir.mkdir("a").mkdir("b")
-        b.join("conftest.py").write(py.code.Source("""
+        b.join("conftest.py").write(pytest.code.Source("""
             def pytest_pycollect_makemodule(__multicall__):
                 mod = __multicall__.execute()
                 mod.obj.hello = "world"
                 return mod
         """))
-        b.join("test_module.py").write(py.code.Source("""
+        b.join("test_module.py").write(pytest.code.Source("""
             def test_hello():
                 assert hello == "world"
         """))
@@ -603,7 +603,7 @@ class TestConftestCustomization:
 
     def test_customized_pymakeitem(self, testdir):
         b = testdir.mkdir("a").mkdir("b")
-        b.join("conftest.py").write(py.code.Source("""
+        b.join("conftest.py").write(pytest.code.Source("""
             import pytest
             @pytest.hookimpl(hookwrapper=True)
             def pytest_pycollect_makeitem():
@@ -614,7 +614,7 @@ class TestConftestCustomization:
                         for func in result:
                             func._some123 = "world"
         """))
-        b.join("test_module.py").write(py.code.Source("""
+        b.join("test_module.py").write(pytest.code.Source("""
             import pytest
 
             @pytest.fixture()
@@ -652,7 +652,7 @@ class TestConftestCustomization:
 def test_setup_only_available_in_subdir(testdir):
     sub1 = testdir.mkpydir("sub1")
     sub2 = testdir.mkpydir("sub2")
-    sub1.join("conftest.py").write(py.code.Source("""
+    sub1.join("conftest.py").write(pytest.code.Source("""
         import pytest
         def pytest_runtest_setup(item):
             assert item.fspath.purebasename == "test_in_sub1"
@@ -661,7 +661,7 @@ def test_setup_only_available_in_subdir(testdir):
         def pytest_runtest_teardown(item):
             assert item.fspath.purebasename == "test_in_sub1"
     """))
-    sub2.join("conftest.py").write(py.code.Source("""
+    sub2.join("conftest.py").write(pytest.code.Source("""
         import pytest
         def pytest_runtest_setup(item):
             assert item.fspath.purebasename == "test_in_sub2"

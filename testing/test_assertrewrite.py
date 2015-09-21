@@ -17,7 +17,7 @@ from _pytest.main import EXIT_NOTESTSCOLLECTED
 
 def setup_module(mod):
     mod._old_reprcompare = util._reprcompare
-    py.code._reprcompare = None
+    pytest.code._reprcompare = None
 
 def teardown_module(mod):
     util._reprcompare = mod._old_reprcompare
@@ -31,7 +31,7 @@ def rewrite(src):
 
 def getmsg(f, extra_ns=None, must_pass=False):
     """Rewrite the assertions in f, run it, and get the failure message."""
-    src = '\n'.join(py.code.Code(f).source().lines)
+    src = '\n'.join(pytest.code.Code(f).source().lines)
     mod = rewrite(src)
     code = compile(mod, "<test>", "exec")
     ns = {}
@@ -669,7 +669,7 @@ class TestAssertionRewriteHookDetails(object):
         """Implement optional PEP302 api (#808).
         """
         path = testdir.mkpydir("foo")
-        path.join("test_foo.py").write(py.code.Source("""
+        path.join("test_foo.py").write(pytest.code.Source("""
             class Test:
                 def test_foo(self):
                     import pkgutil

@@ -151,7 +151,7 @@ class CallInfo:
             self.stop = time()
             raise
         except:
-            self.excinfo = py.code.ExceptionInfo()
+            self.excinfo = pytest.code.ExceptionInfo()
         self.stop = time()
 
     def __repr__(self):
@@ -211,7 +211,7 @@ def pytest_runtest_makereport(item, call):
         outcome = "passed"
         longrepr = None
     else:
-        if not isinstance(excinfo, py.code.ExceptionInfo):
+        if not isinstance(excinfo, pytest.code.ExceptionInfo):
             outcome = "failed"
             longrepr = excinfo
         elif excinfo.errisinstance(pytest.skip.Exception):

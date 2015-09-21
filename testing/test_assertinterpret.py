@@ -340,7 +340,7 @@ def test_oldinterpret_importation():
     # we had a cyclic import there
     # requires pytest on sys.path
     res = py.std.subprocess.call([
-        py.std.sys.executable, '-c', str(py.code.Source("""
+        py.std.sys.executable, '-c', str(pytest.code.Source("""
         try:
             from _pytest.assertion.newinterpret import interpret
         except ImportError:

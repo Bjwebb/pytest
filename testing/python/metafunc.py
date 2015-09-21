@@ -798,11 +798,11 @@ class TestMetafuncFunctional:
     def test_generate_tests_only_done_in_subdir(self, testdir):
         sub1 = testdir.mkpydir("sub1")
         sub2 = testdir.mkpydir("sub2")
-        sub1.join("conftest.py").write(py.code.Source("""
+        sub1.join("conftest.py").write(pytest.code.Source("""
             def pytest_generate_tests(metafunc):
                 assert metafunc.function.__name__ == "test_1"
         """))
-        sub2.join("conftest.py").write(py.code.Source("""
+        sub2.join("conftest.py").write(pytest.code.Source("""
             def pytest_generate_tests(metafunc):
                 assert metafunc.function.__name__ == "test_2"
         """))

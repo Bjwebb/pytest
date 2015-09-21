@@ -269,7 +269,7 @@ def test_testcase_custom_exception_info(testdir, type):
                 def t(*args):
                     mp.undo()
                     raise TypeError()
-                mp.setattr(py.code, 'ExceptionInfo', t)
+                mp.setattr(pytest.code, 'ExceptionInfo', t)
                 try:
                     excinfo = excinfo._excinfo
                     result.add%(type)s(self, excinfo)

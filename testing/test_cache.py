@@ -1,7 +1,6 @@
 import pytest
 import os
 import shutil
-import py
 
 pytest_plugins = "pytester",
 
@@ -113,7 +112,7 @@ class TestLastFailed:
         result.stdout.fnmatch_lines([
             "*2 failed*",
         ])
-        p.write(py.code.Source("""
+        p.write(pytest.code.Source("""
             def test_1():
                 assert 1
 
@@ -145,11 +144,11 @@ class TestLastFailed:
         ])
 
     def test_failedfirst_order(self, testdir):
-        testdir.tmpdir.join('test_a.py').write(py.code.Source("""
+        testdir.tmpdir.join('test_a.py').write(pytest.code.Source("""
             def test_always_passes():
                 assert 1
         """))
-        testdir.tmpdir.join('test_b.py').write(py.code.Source("""
+        testdir.tmpdir.join('test_b.py').write(pytest.code.Source("""
             def test_always_fails():
                 assert 0
         """))
@@ -189,7 +188,7 @@ class TestLastFailed:
         result.stdout.fnmatch_lines([
             "*1 failed*",
         ])
-        p2.write(py.code.Source("""
+        p2.write(pytest.code.Source("""
             def test_b1():
                 assert 1
         """))
@@ -210,7 +209,7 @@ class TestLastFailed:
                 assert 0
         """)
         p2 = testdir.tmpdir.join("test_something.py")
-        p2.write(py.code.Source("""
+        p2.write(pytest.code.Source("""
             def test_2():
                 assert 0
         """))

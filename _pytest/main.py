@@ -91,11 +91,11 @@ def wrap_session(config, doit):
         except pytest.UsageError:
             raise
         except KeyboardInterrupt:
-            excinfo = py.code.ExceptionInfo()
+            excinfo = pytest.code.ExceptionInfo()
             config.hook.pytest_keyboard_interrupt(excinfo=excinfo)
             session.exitstatus = EXIT_INTERRUPTED
         except:
-            excinfo = py.code.ExceptionInfo()
+            excinfo = pytest.code.ExceptionInfo()
             config.notify_exception(excinfo, config.option)
             session.exitstatus = EXIT_INTERNALERROR
             if excinfo.errisinstance(SystemExit):

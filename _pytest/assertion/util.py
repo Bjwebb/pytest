@@ -2,6 +2,7 @@
 import pprint
 
 import py
+import pytest.code
 try:
     from collections import Sequence
 except ImportError:
@@ -170,7 +171,7 @@ def assertrepr_compare(config, op, left, right):
         explanation = [
             u('(pytest_assertion plugin: representation of details failed.  '
               'Probably an object has a faulty __repr__.)'),
-            u(py.code.ExceptionInfo())]
+            u(pytest.code.ExceptionInfo())]
 
     if not explanation:
         return None

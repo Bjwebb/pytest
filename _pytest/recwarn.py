@@ -70,7 +70,7 @@ def warns(expected_warning, *args, **kwargs):
         loc.update(kwargs)
 
         with wcheck:
-            code = py.code.Source(code).compile()
+            code = pytest.code.Source(code).compile()
             py.builtin.exec_(code, frame.f_globals, loc)
     else:
         func = args[0]

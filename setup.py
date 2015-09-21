@@ -76,7 +76,7 @@ def main():
         install_requires=install_requires,
         extras_require=extras_require,
         packages=['_pytest', '_pytest.assertion', '_pytest.vendored_packages'],
-        py_modules=['pytest'],
+        py_modules=['pytest', 'pytest.code'],
         zip_safe=False,
     )
 

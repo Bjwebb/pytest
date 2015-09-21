@@ -1,10 +1,8 @@
-import traceback
-import types
 import py
 import pytest.code
 import sys, inspect
 from compiler import parse, ast, pycodegen
-from _pytest.assertion.util import format_explanation, BuiltinAssertionError
+from py._code.assertion import BuiltinAssertionError, _format_explanation
 
 passthroughex = py.builtin._sysex
 
@@ -58,7 +56,7 @@ class View(object):
     def __getattr__(self, attr):
         # attributes not found in the normal hierarchy rooted on View
         # are looked up in the object's real class
-        return getattr(object.__getattribute__(self, '__obj__'), attr)
+        return getattr(self.__obj__, attr)
 
     def __viewkey__(self):
         return self.__obj__.__class__
@@ -134,7 +132,7 @@ class Interpretable(View):
             raise Failure(self)
 
     def nice_explanation(self):
-        return format_explanation(self.explanation)
+        return _format_explanation(self.explanation)
 
 
 class Name(Interpretable):
@@ -358,18 +356,7 @@ class Getattr(Interpretable):
         expr.eval(frame)
         source = '__exprinfo_expr.%s' % self.attrname
         try:
-            try:
-                self.result = frame.eval(source, __exprinfo_expr=expr.result)
-            except AttributeError:
-                # Maybe the attribute name needs to be mangled?
-                if (not self.attrname.startswith("__") or
-                    self.attrname.endswith("__")):
-                    raise
-                source = "getattr(__exprinfo_expr.__class__, '__name__', '')"
-                class_name = frame.eval(source, __exprinfo_expr=expr.result)
-                mangled_attr = "_" + class_name +  self.attrname
-                source = "__exprinfo_expr.%s" % (mangled_attr,)
-                self.result = frame.eval(source, __exprinfo_expr=expr.result)
+            self.result = frame.eval(source, __exprinfo_expr=expr.result)
         except passthroughex:
             raise
         except:
@@ -397,6 +384,10 @@ class Assert(Interpretable):
     def run(self, frame):
         test = Interpretable(self.test)
         test.eval(frame)
+        # simplify 'assert False where False = ...'
+        if (test.explanation.startswith('False\n{False = ') and
+            test.explanation.endswith('\n}')):
+            test.explanation = test.explanation[15:-2]
         # print the result as  'assert <explanation>'
         self.result = test.result
         self.explanation = 'assert ' + test.explanation
@@ -480,7 +471,7 @@ def check(s, frame=None):
 def interpret(source, frame, should_fail=False):
     module = Interpretable(parse(source, 'exec').node)
     #print "got module", module
-    if isinstance(frame, types.FrameType):
+    if isinstance(frame, py.std.types.FrameType):
         frame = pytest.code.Frame(frame)
     try:
         module.run(frame)
@@ -490,11 +481,12 @@ def interpret(source, frame, should_fail=False):
     except passthroughex:
         raise
     except:
+        import traceback
         traceback.print_exc()
     if should_fail:
         return ("(assertion failed, but when it was re-run for "
                 "printing intermediate values, it did not fail.  Suggestions: "
-                "compute assert expression before the assert or use --assert=plain)")
+                "compute assert expression before the assert or use --nomagic)")
     else:
         return None
 
@@ -539,13 +531,10 @@ if __name__ == '__main__':
     # example:
     def f():
         return 5
-
     def g():
         return 3
-
     def h(x):
         return 'never'
-
     check("f() * g() == 5")
     check("not f()")
     check("not (f() and g() or 0)")
